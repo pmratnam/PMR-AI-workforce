@@ -1,0 +1,17 @@
+[project]
+name = "pmr-api"
+version = "0.2.0"
+description = "PMR AI Workforce Platform - backend"
+requires-python = ">=3.12"
+dependencies = [
+  "anthropic>=2.14",
+  "pydantic>=2.13",
+  "psycopg[binary]>=3.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
