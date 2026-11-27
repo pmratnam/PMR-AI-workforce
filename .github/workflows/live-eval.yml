@@ -1,0 +1,37 @@
+name: live-eval
+# Runs all 15 AI employees against the real Claude API. Costs API credits, so it only
+# runs when someone adds the "live-eval" label to a PR (or starts it by hand once on main).
+on:
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      employees:
+        description: "Space-separated codes (blank = all 15)"
+        required: false
+        default: ""
+
+jobs:
+  eval:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'live-eval'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "anthropic>=2.14" "pydantic>=2.13" "psycopg[binary]>=3.3"
+      - name: Run employees against Claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -m scripts.eval_employees ${{ github.event.inputs.employees }} | tee eval_summary.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-outputs
+          path: |
+            apps/api/eval_summary.txt
+            apps/api/eval_output_*.json
